@@ -58,10 +58,31 @@ def forward(self, inputs: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
 
         return loss
 ```
-#### Cosine similarity
+### Cosine similarity
 The way to calculate the cosine similarity is different, but the output / logits are calculated in the same way.
+#### Why?
+Let's consider a simple example:
+```python
+>>> m = 0.40
+>>> one_hot = torch.zeros(3,5).scatter_(1, torch.tensor([[0,1,2,0]]), 1.0)
+>>> one_hot
+tensor([[1., 0., 0., 1., 0.],
+        [0., 1., 0., 0., 0.],
+        [0., 0., 1., 0., 0.]])
+>>> - one_hot * m
+tensor([[-0.4000,  0.0000,  0.0000, -0.4000,  0.0000],
+        [ 0.0000, -0.4000,  0.0000,  0.0000,  0.0000],
+        [ 0.0000,  0.0000, -0.4000,  0.0000,  0.0000]])
 
-#### Loss function
+>>> d_theta = torch.zeros(3,5).scatter_(1, torch.tensor([[0,1,2,0]]), -m, reduce='add')
+>>> d_theta
+tensor([[-0.4000,  0.0000,  0.0000, -0.4000,  0.0000],
+        [ 0.0000, -0.4000,  0.0000,  0.0000,  0.0000],
+        [ 0.0000,  0.0000, -0.4000,  0.0000,  0.0000]])
+```
+It follows that output/logits are calculated in the same way:
+$s\cdot(cosine-one_{hot} * m) = s\cdot(cosine+d_{\theta})$  
+### Loss function
 
 CosPlace return the output/logits, while OpenSphere returns the loss obtained with the CrossEntropy loss function.
 

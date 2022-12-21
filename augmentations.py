@@ -57,3 +57,26 @@ if __name__ == "__main__":
     pil_image.show()
     augmented_image_0.show()
     augmented_image_1.show()
+
+    # sam stuff
+    # Initialize augmenters
+auto_aug = T.AutoAugment()
+rand_aug = T.RandAugment()
+triv_aug = T.TrivialAugmentWide()
+
+rand_trans = T.RandomApply(transforms=[auto_aug, rand_aug, triv_aug], p=0.5)
+
+transforms = T.Compose([
+    DeviceAgnosticRandomResizedCrop([256,256], scale =[0.5, 1]),
+    T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
+
+# Create a batch with 2 astronaut images
+pil_image = Image.fromarray(data.astronaut())
+tensor_image = T.functional.to_tensor(pil_image).unsqueeze(0)
+
+imgs = [rand_trans(pil_image) for _ in range(20)]
+images_batch = torch.cat([T.functional.to_tensor(x).unsqueeze(0) for x in imgs])
+tensor_imgs = transforms(images_batch)
+aug_image = T.functional.to_pil_image(tensor_imgs[8])
+aug_image.show()

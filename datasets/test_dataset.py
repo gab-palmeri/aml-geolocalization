@@ -1,6 +1,7 @@
 
 import os
 import numpy as np
+import logging
 from glob import glob
 from PIL import Image
 import torch.utils.data as data
@@ -71,6 +72,7 @@ class TestDataset(data.Dataset):
         pil_img = open_image(image_path)
         if index < self.database_num:
             # Database image
+            logging.debug("Should be database image")
             pil_img = self.augment_transform(pil_img)
         normalized_img = self.base_transform(pil_img)
         return normalized_img, index

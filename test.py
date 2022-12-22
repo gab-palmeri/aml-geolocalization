@@ -25,7 +25,6 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module) -> Tuple[np.
                                          batch_size=args.infer_batch_size, pin_memory=(args.device == "cuda"))
         all_descriptors = np.empty((len(eval_ds), args.fc_output_dim), dtype="float32")
         for images, indices in tqdm(database_dataloader, ncols=100):
-            logging.debug(f"Images: {images.shape}, indices: {indices.shape}")
             descriptors = model(images.to(args.device))
             descriptors = descriptors.cpu().numpy()
             all_descriptors[indices.numpy(), :] = descriptors

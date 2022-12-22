@@ -4,7 +4,7 @@ import logging
 import torchvision
 from torch import nn
 
-from model.layers import Flatten, L2Norm, GeM, ParametrizedGradientReversalLayer
+from Team.model.layers import Flatten, L2Norm, GeM, ParametrizedGradientReversalLayer
 
 
 CHANNELS_NUM_IN_LAST_CONV = {
@@ -22,6 +22,7 @@ class GeoLocalizationNet(nn.Module):
         super().__init__()
         self.backbone, features_dim = get_backbone(backbone)
         self.aggregation = nn.Sequential(
+                ParametrizedGradientReversalLayer(0.5),
                 L2Norm(),
                 GeM(),
                 Flatten(),

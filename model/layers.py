@@ -38,3 +38,11 @@ class L2Norm(nn.Module):
     
     def forward(self, x):
         return F.normalize(x, p=2.0, dim=self.dim)
+
+
+class GradientReversalLayer(torch.nn.Module):
+    def forward(self, x):
+        return x
+
+    def backward(self, grad_output):
+        return -grad_output

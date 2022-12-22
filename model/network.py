@@ -4,7 +4,7 @@ import logging
 import torchvision
 from torch import nn
 
-from model.layers import Flatten, L2Norm, GeM
+from model.layers import Flatten, L2Norm, GeM, GradientReversalLayer
 
 
 CHANNELS_NUM_IN_LAST_CONV = {
@@ -34,6 +34,27 @@ class GeoLocalizationNet(nn.Module):
         x = self.aggregation(x)
         return x
 
+class GeoAdapt(nn.Module):
+    def __init__(self, backbone, fc_output_dim):
+        super().__init__()
+        # backbone
+        self.backbone, features_dim = get_backbone(backbone)
+        # gradient reversal layer
+        self.grl = GradientReversalLayer()
+        # GeoLocalizationNet layer
+        self.gln = nn.Sequential(
+                L2Norm(),
+                GeM(),
+                Flatten(),
+                nn.Linear(features_dim, fc_output_dim),
+                L2Norm()
+            )
+    
+    def forward(self, x):
+        x = self.backbone(x)
+        x = self.grl(x)
+        x = self.gln(x)
+        return x
 
 def get_backbone(backbone_name):
     if backbone_name.startswith("resnet"):

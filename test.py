@@ -54,7 +54,7 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module) -> Tuple[np.
     positives_per_query = eval_ds.get_positives()
     recalls = np.zeros(len(RECALL_VALUES))
     for query_index, preds in enumerate(predictions):
-        logging.debug(f"Query {query_index}: {preds[:5]}")
+        logging.debug(f"Query {query_index}: {preds}")
         logging.debug(f"Positives: {positives_per_query[query_index]}")
         for i, n in enumerate(RECALL_VALUES):
             if np.any(np.in1d(preds[:n], positives_per_query[query_index])):

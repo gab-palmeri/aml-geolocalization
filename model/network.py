@@ -4,7 +4,7 @@ import logging
 import torchvision
 from torch import nn
 
-from model.layers import Flatten, L2Norm, GeM, GradientReversalLayer
+from model.layers import Flatten, L2Norm, GeM, ParametrizedGradientReversalLayer
 
 
 CHANNELS_NUM_IN_LAST_CONV = {
@@ -40,7 +40,7 @@ class GeoAdapt(nn.Module):
         # backbone
         self.backbone, features_dim = get_backbone(backbone)
         # gradient reversal layer
-        self.grl = GradientReversalLayer()
+        self.grl = ParametrizedGradientReversalLayer(0.5)
         # GeoLocalizationNet layer
         self.gln = nn.Sequential(
                 L2Norm(),

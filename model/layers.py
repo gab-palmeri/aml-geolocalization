@@ -40,9 +40,15 @@ class L2Norm(nn.Module):
         return F.normalize(x, p=2.0, dim=self.dim)
 
 
-class GradientReversalLayer(torch.nn.Module):
+class ParametrizedGradientReversalLayer(torch.nn.Module):
+    def __init__(self, strength=1.0):
+        super(ParametrizedGradientReversalLayer, self).__init__()
+        # Create a learnable parameter to control the strength of the gradient reversal
+        self.strength = torch.nn.Parameter(torch.tensor(strength))
+
     def forward(self, x):
         return x
 
     def backward(self, grad_output):
-        return -grad_output
+        # Multiply the grad_output by the strength parameter before returning it
+        return -self.strength * grad_output

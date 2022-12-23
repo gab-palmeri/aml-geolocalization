@@ -14,7 +14,7 @@ CHANNELS_NUM_IN_LAST_CONV = {
         "resnet152": 2048,
         "vgg16": 512,
         "convnext-tiny": 768,
-        "efficientnet-v2-s": 256,
+        "efficientnetv2-s": 256,
     }
 
 

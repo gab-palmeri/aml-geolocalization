@@ -14,6 +14,7 @@ CHANNELS_NUM_IN_LAST_CONV = {
         "resnet152": 2048,
         "vgg16": 512,
         "convnext-tiny": 768,
+        "efficientnet-v2-s": 256,
     }
 
 
@@ -22,7 +23,6 @@ class GeoLocalizationNet(nn.Module):
         super().__init__()
         self.backbone, features_dim = get_backbone(backbone)
         self.aggregation = nn.Sequential(
-                ParametrizedGradientReversalLayer(0.5),
                 L2Norm(),
                 GeM(),
                 Flatten(),
@@ -91,6 +91,15 @@ def get_backbone(backbone_name):
             for p in layer.parameters():
                 p.requires_grad = False
         logging.debug("Train last 3 CNBlocks of the ConvNext-Tiny, freeze the previous ones")
+
+    elif backbone_name == "efficientnetv2-s":
+        backbone = torchvision.models.efficientnet_v2_s(pretrained=True)
+        layers = list(backbone.features.children())[:-1] # Remove avg pooling and FC layer
+        for layer in layers[:-1]:
+            for p in layer.parameters():
+                p.requires_grad = False
+        logging.debug("Train last sequential of EfficientNetV2-S, freeze the previous ones")
+    
     backbone = torch.nn.Sequential(*layers)
     
     features_dim = CHANNELS_NUM_IN_LAST_CONV[backbone_name]

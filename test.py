@@ -22,7 +22,7 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module) -> Tuple[np.
         logging.debug("Extracting database descriptors for evaluation/testing")
         database_subset_ds = Subset(eval_ds, list(range(eval_ds.database_num)))
         database_dataloader = DataLoader(dataset=database_subset_ds, num_workers=args.num_workers,
-                                         batch_size=args.infer_batch_size, pin_memory=(args.device == "cuda"))
+                                         batch_size=args.infer_batch_size, pin_memory=(args.device == "mps"))
         all_descriptors = np.empty((len(eval_ds), args.fc_output_dim), dtype="float32")
         for images, indices in tqdm(database_dataloader, ncols=100):
             descriptors = model(images.to(args.device))
@@ -33,7 +33,7 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module) -> Tuple[np.
         queries_infer_batch_size = 1
         queries_subset_ds = Subset(eval_ds, list(range(eval_ds.database_num, eval_ds.database_num+eval_ds.queries_num)))
         queries_dataloader = DataLoader(dataset=queries_subset_ds, num_workers=args.num_workers,
-                                        batch_size=queries_infer_batch_size, pin_memory=(args.device == "cuda"))
+                                        batch_size=queries_infer_batch_size, pin_memory=(args.device == "mps" or args.device == "cuda"))
         for images, indices in tqdm(queries_dataloader, ncols=100):
             descriptors = model(images.to(args.device))
             descriptors = descriptors.cpu().numpy()

@@ -1,2 +1,5 @@
 **/.DS_Store
-CosPlace/
+CosPlace-main/
+**.ipynb_checkpoints/
+datasets/
+**/__pycache__/

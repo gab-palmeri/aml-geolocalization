@@ -1,0 +1,7 @@
+2022-12-24 02:11:49   /opt/anaconda3/envs/torch-gpu/lib/python3.8/site-packages/ipykernel_launcher.py -f /Users/slotruglio/Library/Jupyter/runtime/kernel-e1e01c8b-1224-462a-81f2-49f41c9805e5.json
+2022-12-24 02:11:49   Arguments: {'M': 10, 'alpha': 30, 'N': 5, 'L': 2, 'groups_num': 1, 'min_images_per_class': 10, 'backbone': 'resnet18', 'fc_output_dim': 512, 'use_amp_16': 'store_true', 'augmentation_device': 'cpu', 'batch_size': 32, 'epochs_num': 3, 'iterations_per_epoch': 10000, 'lr': 1e-05, 'classifiers_lr': 0.01, 'brightness': 0.7, 'contrast': 0.7, 'hue': 0.5, 'saturation': 0.7, 'random_resized_crop': 0.5, 'infer_batch_size': 16, 'positive_dist_threshold': 25, 'resume_train': None, 'resume_model': None, 'device': 'mps', 'seed': 0, 'num_workers': 8, 'dataset_folder': '/content/small', 'save_dir': 'default', 'val_set_folder': '', 'train_set_folder': ''}
+2022-12-24 02:11:49   The outputs are being saved in logs/default/2022-12-24_02-11-49
+2022-12-24 02:12:03   Loading faiss.
+2022-12-24 02:12:03   Successfully loaded faiss.
+2022-12-24 02:16:51   WARNING: You didn't provide a path to resume the model (--resume_model parameter). Evaluation will be computed using randomly initialized weights.
+2022-12-24 02:23:36   < test - #q: 105; #db: 12771 >: R@1: 10.5, R@5: 33.3, R@10: 41.0, R@20: 54.3

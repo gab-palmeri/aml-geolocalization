@@ -42,7 +42,7 @@ class GeolocDataset(data.Dataset):
             queries_prop = 1 - gallery_proportion
             images_per_class = 10
 
-            images_paths = sorted(glob(self.dataset_folder, "/**/*.jpg"), recursive=True)
+            images_paths = sorted(glob(self.dataset_folder + "/**/*.jpg", recursive=True))
             class_id_path = {}
             for path in images_paths:
                 utm_east = float(path.split("@")[1])

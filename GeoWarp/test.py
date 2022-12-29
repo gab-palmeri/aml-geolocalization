@@ -17,7 +17,7 @@ def test(model, predictions, test_dataset, num_reranked_predictions=5,
     model : network.Network
     predictions : np.array of int, containing the first 20 predictions for each query,
         with shape [queries_num, 20].
-    test_dataset : dataset_geoloc.GeolocDataset, which contains the test-time images (queries and gallery).
+    test_dataset : dataset_geoloc.GeolocDataset, which contains the test-time images (queries and database).
     num_reranked_predictions : int, how many predictions to re-rank.
     recall_values : list of int, recalls to compute (e.g. R@1, R@5...).
     test_batch_size : int.
@@ -42,7 +42,7 @@ def test(model, predictions, test_dataset, num_reranked_predictions=5,
                 
                 preds = []
                 for i in batch_indexes:
-                    pred_path = test_dataset.gallery_paths[predictions[num_q, i]]
+                    pred_path = test_dataset.database_paths[predictions[num_q, i]]
                     preds.append(datasets_util.open_image_and_apply_transform(pred_path))
                 preds = torch.stack(preds)
                 

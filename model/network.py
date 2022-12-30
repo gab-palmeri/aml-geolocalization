@@ -79,7 +79,14 @@ def get_backbone(backbone_name, pretrain):
 
 def get_pretrained_resnet18(backbone_name, pretrain):
     import os
-    from google_drive_downloader import GoogleDriveDownloader as gdd
+    import gdown
+    def download(id, output=None, quiet=True):
+        gdown.download(
+            f"https://drive.google.com/uc?export=download&confirm=pbef&id={id}",
+            output=output,
+            quiet=quiet
+        )
+
 
     if pretrain == 'places':  num_classes = 365
     elif pretrain == 'gldv2':  num_classes = 512
@@ -94,8 +101,7 @@ def get_pretrained_resnet18(backbone_name, pretrain):
     
 
     if not os.path.exists(file_path):
-        gdd.download_file_from_google_drive(file_id=PRETRAINED_MODELS[model_name],
-                                            dest_path=file_path)
+        download(id=PRETRAINED_MODELS[model_name], output=file_path)
     state_dict = torch.load(file_path, map_location=torch.device('cpu'))
     model.load_state_dict(state_dict)
     return model

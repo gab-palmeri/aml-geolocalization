@@ -18,6 +18,11 @@ CHANNELS_NUM_IN_LAST_CONV = {
         "resnet101": 2048,
         "resnet152": 2048,
         "vgg16": 512,
+        "efficientnet_b0": 1280,
+        "efficientnet_b1": 1280,
+        "efficientnet_b2": 1408,
+        "efficientnet_v2_s": 1280,
+        "mobilenet_v3_small": 576,
     }
 
 
@@ -69,6 +74,30 @@ def get_backbone(backbone_name, pretrain):
                 p.requires_grad = False
         logging.debug("Train last layers of the VGG-16, freeze the previous ones")
     
+    elif backbone_name.startswith("efficientnet"):
+        if backbone_name == "efficientnet_b0":
+            backbone = torchvision.models.efficientnet_b0(pretrained=True)
+        elif backbone_name == "efficientnet_b1":
+            backbone = torchvision.models.efficientnet_b1(pretrained=True)
+        elif backbone_name == "efficientnet_b2":
+            backbone = torchvision.models.efficientnet_b2(pretrained=True)
+        elif backbone_name == "efficientnet_v2_s":
+            backbone = torchvision.models.efficientnet_v2_s(pretrained=True)
+        
+        layers = list(backbone.features.children()) # Remove avg pooling and FC layer
+        for layer in layers[:-1]: # freeze all the layers except the last block
+            for p in layer.parameters():
+                p.requires_grad = False
+    
+    elif backbone_name.startswith("mobilenet"):
+        if backbone_name == "mobilenet_v3_small":
+            backbone = torchvision.models.mobilenet_v3_small(pretrained=True)
+
+        layers = list(backbone.features.children()) # Remove avg pooling and FC layer
+        for layer in layers[:-1]: # freeze all the layers except the last block
+            for p in layer.parameters():
+                p.requires_grad = False
+
     else:
         raise ValueError(f"Backbone {backbone_name} is not supported")
 

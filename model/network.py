@@ -85,7 +85,7 @@ def get_backbone(backbone_name, pretrain):
             backbone = torchvision.models.efficientnet_v2_s(weights='IMAGENET1K_V1')
         
         layers = list(backbone.features.children()) # Remove avg pooling and FC layer
-        for layer in layers[:-1]: # freeze all the layers except the last two
+        for layer in layers[:-2]: # freeze all the layers except the last two
             for p in layer.parameters():
                 p.requires_grad = False
         logging.debug("Train last two layers of EfficientNet, freeze the previous ones")

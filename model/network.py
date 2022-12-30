@@ -41,6 +41,7 @@ class GeoLocalizationNet(nn.Module):
 def get_backbone(backbone_name, pretrain):
     if backbone_name.startswith("resnet"):
         if backbone_name == "resnet18":
+            logging.info(f"Resnet18 pretrained on: {pretrain}")
             if pretrain in [x.split("_")[-1] for x in PRETRAINED_MODELS.keys()]:
                 backbone = get_pretrained_resnet18(backbone_name, pretrain)
             else:
@@ -97,7 +98,7 @@ def get_pretrained_resnet18(backbone_name, pretrain):
         raise ValueError("This method supports only resnet18, backbone is: {}".format(backbone_name))
     
     model_name = backbone_name.split('conv')[0] + "_" + pretrain
-    file_path =  f"content/pretrained/{model_name}.pth"
+    file_path =  f"/content/pretrained/{model_name}.pth"
     
 
     if not os.path.exists(file_path):

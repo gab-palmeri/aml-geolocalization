@@ -79,7 +79,7 @@ def get_backbone(backbone_name, pretrain):
 
 def get_pretrained_resnet18(backbone_name, pretrain):
     import os
-    import GoogleDriveDownloader as gdd
+    from google_drive_downloader import GoogleDriveDownloader as gdd
 
     if pretrain == 'places':  num_classes = 365
     elif pretrain == 'gldv2':  num_classes = 512

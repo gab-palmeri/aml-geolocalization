@@ -45,19 +45,20 @@ class GeoLocalizationNet(nn.Module):
         return x
 
 def get_backbone(backbone_name, pretrain):
+    weights='IMAGENET1K_V1'
     if backbone_name.startswith("resnet"):
         if backbone_name == "resnet18":
             logging.info(f"Resnet18 pretrained on: {pretrain}")
             if pretrain in [x.split("_")[-1] for x in PRETRAINED_MODELS.keys()]:
                 backbone = get_pretrained_resnet18(backbone_name, pretrain)
             else:
-                backbone = torchvision.models.resnet18(weights='DEFAULT')
+                backbone = torchvision.models.resnet18(weights=weights)
         elif backbone_name == "resnet50":
-            backbone = torchvision.models.resnet50(weights='DEFAULT')
+            backbone = torchvision.models.resnet50(weights=weights)
         elif backbone_name == "resnet101":
-            backbone = torchvision.models.resnet101(weights='DEFAULT')
+            backbone = torchvision.models.resnet101(weights=weights)
         elif backbone_name == "resnet152":
-            backbone = torchvision.models.resnet152(weights='DEFAULT')
+            backbone = torchvision.models.resnet152(weights=weights)
         
         for name, child in backbone.named_children():
             if name == "layer3":  # Freeze layers before conv_3
@@ -68,7 +69,7 @@ def get_backbone(backbone_name, pretrain):
         layers = list(backbone.children())[:-2]  # Remove avg pooling and FC layer
     
     elif backbone_name == "vgg16":
-        backbone = torchvision.models.vgg16(weights='DEFAULT')
+        backbone = torchvision.models.vgg16(weights=weights)
         layers = list(backbone.features.children())[:-2]  # Remove avg pooling and FC layer
         for layer in layers[:-5]:
             for p in layer.parameters():
@@ -77,13 +78,13 @@ def get_backbone(backbone_name, pretrain):
     
     elif backbone_name.startswith("efficientnet"):
         if backbone_name == "efficientnet_b0":
-            backbone = torchvision.models.efficientnet_b0(weights='DEFAULT')
+            backbone = torchvision.models.efficientnet_b0(weights=weights)
         elif backbone_name == "efficientnet_b1":
-            backbone = torchvision.models.efficientnet_b1(weights='DEFAULT')
+            backbone = torchvision.models.efficientnet_b1(weights=weights)
         elif backbone_name == "efficientnet_b2":
-            backbone = torchvision.models.efficientnet_b2(weights='DEFAULT')
+            backbone = torchvision.models.efficientnet_b2(weights=weights)
         elif backbone_name == "efficientnet_v2_s":
-            backbone = torchvision.models.efficientnet_v2_s(weights='DEFAULT')
+            backbone = torchvision.models.efficientnet_v2_s(weights=weights)
         
         layers = list(backbone.features.children()) # Remove avg pooling and FC layer
         for layer in layers[:-2]: # freeze all the layers except the last two
@@ -93,9 +94,9 @@ def get_backbone(backbone_name, pretrain):
     
     elif backbone_name.startswith("mobilenet"):
         if backbone_name == "mobilenet_v3_small":
-            backbone = torchvision.models.mobilenet_v3_small(weights='DEFAULT')
+            backbone = torchvision.models.mobilenet_v3_small(weights=weights)
         elif backbone_name == "mobilenet_v3_large":
-            backbone = torchvision.models.mobilenet_v3_large(weights='DEFAULT')
+            backbone = torchvision.models.mobilenet_v3_large(weights=weights)
 
         layers = list(backbone.features.children()) # Remove avg pooling and FC layer
         for layer in layers[:-2]: # freeze all the layers except the last two

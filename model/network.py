@@ -4,7 +4,8 @@ import logging
 import torchvision
 from torch import nn
 
-from Team.model.layers import Flatten, L2Norm, GeM
+from .layers import Flatten, L2Norm, GeM
+from .cct import cct_14_7x2_384
 
 # Pretrained models on Google Landmarks v2 and Places 365
 PRETRAINED_MODELS = {
@@ -24,6 +25,9 @@ CHANNELS_NUM_IN_LAST_CONV = {
         "efficientnet_v2_s": 1280,
         "mobilenet_v3_small": 576,
         "mobilenet_v3_large": 960,
+        "convnext_tiny": 768,
+        "swin_tiny": 768,
+        "cct384": 384,
     }
 
 
@@ -99,10 +103,49 @@ def get_backbone(backbone_name, pretrain):
             backbone = torchvision.models.mobilenet_v3_large(weights=weights)
 
         layers = list(backbone.features.children()) # Remove avg pooling and FC layer
-        for layer in layers[:-2]: # freeze all the layers except the last two
+        # TODO consider to freeze up to layers[:-3]
+        for layer in layers[:-3]: # freeze all the layers except the last two
             for p in layer.parameters():
                 p.requires_grad = False
         logging.debug("Train last two layers of MobileNet, freeze the previous ones")
+
+    elif backbone_name.startswith("convnext"):
+        if backbone_name == "convnext_tiny":
+            backbone = torchvision.models.convnext_tiny(weights=weights)
+        layers = list(backbone.features.children()) # Remove avg pooling and FC layer
+        for layer in layers[:-1]: # freeze all the layers except the last one
+            for p in layer.parameters():
+                p.requires_grad = False
+        logging.debug("Train last layer of ConvNext, freeze the previous ones")
+
+    elif backbone_name.startswith("swin"):
+        if backbone_name == "swin_tiny":
+            backbone = torchvision.models.swin_t(weights=weights)
+        # TODO consider to get just the features layers
+        layers = list(backbone.children())[:-3] # Remove avg pooling and FC layer
+        for x in layers[0][:-1]:
+            for p in x.parameters():
+                p.requires_grad = False # freeze all the layers except the last three blocks
+        logging.debug("Train last three layers of Swin, freeze the previous ones")
+
+    elif backbone.startswith("cct"):
+        if backbone.startswith("cct384"):
+            backbone = cct_14_7x2_384(pretrained=True, progress=True, aggregation="seqpool")
+        # TODO check the structure of the backbone
+        #if args.trunc_te:
+        #    logging.debug(f"Truncate CCT at transformers encoder {args.trunc_te}")
+        #    backbone.classifier.blocks = torch.nn.ModuleList(backbone.classifier.blocks[:args.trunc_te].children())
+        #if args.freeze_te:
+        #    logging.debug(f"Freeze all the layers up to tranformer encoder {args.freeze_te}")
+        #    for p in backbone.parameters():
+        #        p.requires_grad = False
+        #    for name, child in backbone.classifier.blocks.named_children():
+        #        if int(name) > args.freeze_te:
+        #            for params in child.parameters():
+        #                params.requires_grad = True
+
+        features_dim = CHANNELS_NUM_IN_LAST_CONV[backbone_name]
+        return backbone, features_dim
 
     else:
         raise ValueError(f"Backbone {backbone_name} is not supported")

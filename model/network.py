@@ -4,7 +4,7 @@ import logging
 import torchvision
 from torch import nn
 
-from .layers import Flatten, L2Norm, GeM
+from .layers import GRL, Flatten, L2Norm, GeM
 from .cct import cct_14_7x2_384
 
 # Pretrained models on Google Landmarks v2 and Places 365
@@ -38,6 +38,24 @@ class GeoLocalizationNet(nn.Module):
         self.aggregation = nn.Sequential(
                 L2Norm(),
                 GeM(),
+                Flatten(),
+                nn.Linear(features_dim, fc_output_dim),
+                L2Norm()
+            )
+    
+    def forward(self, x):
+        x = self.backbone(x)
+        x = self.aggregation(x)
+        return x
+
+class GeoLocalizationNetV2(nn.Module):
+    def __init__(self, backbone, fc_output_dim, pretrain):
+        super().__init__()
+        self.backbone, features_dim = get_backbone(backbone, pretrain)
+        self.aggregation = nn.Sequential(
+                L2Norm(),
+                GeM(),
+                GRL(),
                 Flatten(),
                 nn.Linear(features_dim, fc_output_dim),
                 L2Norm()

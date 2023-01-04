@@ -40,7 +40,7 @@ class L2Norm(nn.Module):
         return F.normalize(x, p=2.0, dim=self.dim)
 
 class GRL(nn.Module):
-    def __init__(self, alpha: float) -> None:
+    def __init__(self, alpha: float = 0.5) -> None:
         super().__init__()
         self.alpha = alpha
 

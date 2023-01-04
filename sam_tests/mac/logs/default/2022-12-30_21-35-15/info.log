@@ -1,0 +1,10 @@
+2022-12-30 21:35:15   /opt/anaconda3/envs/torch-gpu/lib/python3.8/site-packages/ipykernel_launcher.py -f /Users/slotruglio/Library/Jupyter/runtime/kernel-71213852-c7dd-431c-a025-6fa3f88c7060.json
+2022-12-30 21:35:15   Arguments: {'M': 10, 'alpha': 30, 'N': 5, 'L': 2, 'groups_num': 1, 'min_images_per_class': 10, 'backbone': 'efficientnet_b0', 'pretrain': 'imagenet', 'fc_output_dim': 512, 'use_amp_16': False, 'augmentation_device': 'cpu', 'batch_size': 32, 'epochs_num': 3, 'iterations_per_epoch': 10000, 'lr': 1e-05, 'classifiers_lr': 0.01, 'brightness': 0.7, 'contrast': 0.7, 'hue': 0.5, 'saturation': 0.7, 'random_resized_crop': 0.5, 'infer_batch_size': 16, 'positive_dist_threshold': 25, 'resume_train': None, 'resume_model': 'models/default.pth', 'device': 'mps', 'seed': 0, 'num_workers': 8, 'dataset_folder': '/content/small', 'save_dir': 'default', 'val_set_folder': '', 'train_set_folder': ''}
+2022-12-30 21:35:15   The outputs are being saved in logs/default/2022-12-30_21-35-15
+2022-12-30 21:39:00   Loading faiss.
+2022-12-30 21:39:00   Successfully loaded faiss.
+2022-12-30 21:39:16   Loading model from /Users/slotruglio/testing/aml-geolocalization/models/efficient_last_layer.pth
+2022-12-30 21:39:50   Loading model from /Users/slotruglio/testing/aml-geolocalization/models/efficient_last_layer.pth
+2022-12-30 21:40:04   Loading model from /Users/slotruglio/testing/aml-geolocalization/models/efficient_last_layer.pth
+2022-12-30 21:58:05   < test - #q: 105; #db: 12771 >: R@1: 29.5, R@5: 42.9, R@10: 51.4, R@20: 63.8
+2022-12-30 22:23:37   < test - #q: 315; #db: 12771 >: R@1: 46.7, R@5: 67.9, R@10: 75.9, R@20: 81.3

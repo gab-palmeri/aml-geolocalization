@@ -131,18 +131,19 @@ def get_backbone(backbone_name, pretrain):
     elif backbone.startswith("cct"):
         if backbone.startswith("cct384"):
             backbone = cct_14_7x2_384(pretrained=True, progress=True, aggregation="seqpool")
-        # TODO check the structure of the backbone
-        #if args.trunc_te:
-        #    logging.debug(f"Truncate CCT at transformers encoder {args.trunc_te}")
-        #    backbone.classifier.blocks = torch.nn.ModuleList(backbone.classifier.blocks[:args.trunc_te].children())
-        #if args.freeze_te:
-        #    logging.debug(f"Freeze all the layers up to tranformer encoder {args.freeze_te}")
-        #    for p in backbone.parameters():
-        #        p.requires_grad = False
-        #    for name, child in backbone.classifier.blocks.named_children():
-        #        if int(name) > args.freeze_te:
-        #            for params in child.parameters():
-        #                params.requires_grad = True
+
+        trunc_te = 8        # value from 04/01 Q&A 
+        freeze_te = 1       # value from 04/01 Q&A
+
+        logging.debug(f"Truncate CCT at transformers encoder {trunc_te}")
+        backbone.classifier.blocks = torch.nn.ModuleList(backbone.classifier.blocks[:trunc_te].children())
+        logging.debug(f"Freeze all the layers up to tranformer encoder {freeze_te}")
+        for p in backbone.parameters():
+            p.requires_grad = False
+        for name, child in backbone.classifier.blocks.named_children():
+            if int(name) > freeze_te:
+                for params in child.parameters():
+                    params.requires_grad = True
 
         features_dim = CHANNELS_NUM_IN_LAST_CONV[backbone_name]
         return backbone, features_dim

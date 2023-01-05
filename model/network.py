@@ -55,7 +55,7 @@ class GeoLocalizationNetV2(nn.Module):
         self.aggregation = nn.Sequential(
                 L2Norm(),
                 GeM(),
-                GRL(),
+                GRL(0.7),
                 Flatten(),
                 nn.Linear(features_dim, fc_output_dim),
                 L2Norm()

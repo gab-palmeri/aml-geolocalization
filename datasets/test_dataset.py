@@ -12,6 +12,18 @@ import imgaug.augmenters as iaa
 def open_image(path):
     return Image.open(path).convert("RGB")
 
+# Define the custom transformation
+def fourier_transform(image):
+    image_np = np.array(image)
+    # Create the Fourier transform augmenter
+    fourier_augmenter = iaa.FrequencyNoiseAlpha(
+        exponent=(-4, 4),
+        first=iaa.Multiply(0.5),
+        second=iaa.Add(10)
+    )
+    image_fourier = fourier_augmenter.augment_image(image_np)
+    return Image.fromarray(image_fourier)
+
 
 class TestDataset(data.Dataset):
     def __init__(self, dataset_folder, database_folder="database",
@@ -45,17 +57,9 @@ class TestDataset(data.Dataset):
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
 
-        #FOURIER DATA AUGMENTATION
-        fourier_augmenter = iaa.FrequencyNoiseAlpha(
-            exponent=(-4, 4),
-            first=iaa.Multiply(0.5),
-            second=iaa.Add(10)
-        )
-        seq = iaa.Sequential([fourier_augmenter])
-
         #QUERY TRANSFORM -> WITH FOURIER DATA AUGMENTATION
         self.queries_transform = transforms.Compose([
-            seq,  # Augmentation di Fourier
+            transforms.Lambda(fourier_transform),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
@@ -90,7 +94,7 @@ class TestDataset(data.Dataset):
         else:
             image_path = self.images_paths[index]
             pil_img = open_image(image_path)
-            normalized_img = self.database_transform(pil_img)
+            normalized_img = self.queries_transform(pil_img)
             return normalized_img, index
 
     

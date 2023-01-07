@@ -18,10 +18,12 @@ def open_image(path):
 def fourier_data_augmentation(image):
     # Convert the image to a numpy array
     image_np = np.array(image)
-    # Calculate the size of the image
-    n = image_np.shape[0]  # Width of the image
+
     # Calculate the Fourier transform of the image
     image_fourier = fft2(image_np)
+
+    n = image_np.shape[0]
+
     # Modify the Fourier transform to add frequency noise
     image_fourier_noise = image_fourier[np.random.permutation(n)]
     image_fourier_noise = image_fourier_noise[:, np.random.permutation(n)]

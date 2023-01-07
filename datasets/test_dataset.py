@@ -90,7 +90,7 @@ class TestDataset(data.Dataset):
         else:
             image_path = self.images_paths[index]
             pil_img = open_image(image_path)
-            normalized_img = self.queries_transform(pil_img)
+            normalized_img = self.database_transform(pil_img)
             return normalized_img, index
 
     

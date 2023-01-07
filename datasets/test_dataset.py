@@ -8,21 +8,25 @@ from sklearn.neighbors import NearestNeighbors
 import imgaug as ia
 import imgaug.augmenters as iaa
 
+from scipy.fftpack import fft2, ifft2
+
 
 def open_image(path):
     return Image.open(path).convert("RGB")
 
 # Define the custom transformation
-def fourier_transform(image):
+def fourier_data_augmentation(image):
+    # Convert the image to a numpy array
     image_np = np.array(image)
-    # Create the Fourier transform augmenter
-    fourier_augmenter = iaa.FrequencyNoiseAlpha(
-        exponent=(-4, 4),
-        first=iaa.Multiply(0.5),
-        second=iaa.Add(10)
-    )
-    image_fourier = fourier_augmenter.augment_image(image_np)
-    return Image.fromarray(image_fourier)
+    # Calculate the Fourier transform of the image
+    image_fourier = fft2(image_np)
+    # Modify the Fourier transform to add frequency noise
+    image_fourier_noise = image_fourier[np.random.permutation(n)]
+    image_fourier_noise = image_fourier_noise[:, np.random.permutation(n)]
+    # Calculate the inverse Fourier transform to obtain the modified image
+    image_modified = np.abs(ifft2(image_fourier_noise))
+    # Convert the modified image back to a PIL image
+    return Image.fromarray(image_modified)
 
 
 class TestDataset(data.Dataset):

@@ -46,11 +46,10 @@ class TestDataset(data.Dataset):
         ])
 
         #FOURIER DATA AUGMENTATION
-        fourier_augmenter = iaa.FourierAugmenter(
-            scale=(0.5, 1.5),
-            translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
-            rotate=(-45, 45),
-            shear=(-8, 8)
+        fourier_augmenter = iaa.FrequencyNoiseAlpha(
+            exponent=(-4, 4),
+            first=iaa.Multiply(0.5),
+            second=iaa.Add(10)
         )
         seq = iaa.Sequential([fourier_augmenter])
 

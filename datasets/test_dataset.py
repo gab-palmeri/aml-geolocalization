@@ -16,11 +16,10 @@ def open_image(path):
 
 # Define the custom transformation
 def fourier_data_augmentation(image):
-
-    n = image.size[0]
-
     # Convert the image to a numpy array
     image_np = np.array(image)
+    # Calculate the size of the image
+    n = image_np.shape[0]  # Width of the image
     # Calculate the Fourier transform of the image
     image_fourier = fft2(image_np)
     # Modify the Fourier transform to add frequency noise

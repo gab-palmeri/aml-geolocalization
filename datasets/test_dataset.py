@@ -16,6 +16,9 @@ def open_image(path):
 
 # Define the custom transformation
 def fourier_data_augmentation(image):
+
+    n = image.size[0]
+
     # Convert the image to a numpy array
     image_np = np.array(image)
     # Calculate the Fourier transform of the image
@@ -63,7 +66,7 @@ class TestDataset(data.Dataset):
 
         #QUERY TRANSFORM -> WITH FOURIER DATA AUGMENTATION
         self.queries_transform = transforms.Compose([
-            transforms.Lambda(fourier_transform),
+            transforms.Lambda(fourier_data_augmentation),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])

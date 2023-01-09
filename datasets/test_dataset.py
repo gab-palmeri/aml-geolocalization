@@ -14,23 +14,18 @@ from scipy.fftpack import fft2, ifft2
 def open_image(path):
     return Image.open(path).convert("RGB")
 
-# Define the custom transformation
-def fourier_data_augmentation(image):
-    # Convert the image to a numpy array
-    image_np = np.array(image)
+def fourier_data_augmentation(data):
+    # Trasforma i dati in una rappresentazione di spettro di Fourier
+    fourier_transform = np.fft.fft(data)
 
-    # Calculate the Fourier transform of the image
-    image_fourier = fft2(image_np)
+    # Modifica l'ampiezza di alcune componenti
+    for i in range(len(fourier_transform)):
+        fourier_transform[i] *= np.random.uniform(low=0.5, high=1.5)
 
-    n = image_np.shape[0]
+    # Trasforma nuovamente i dati indietro nello spazio originale
+    augmented_data = np.fft.ifft(fourier_transform)
 
-    # Modify the Fourier transform to add frequency noise
-    image_fourier_noise = image_fourier[np.random.permutation(n)]
-    image_fourier_noise = image_fourier_noise[:, np.random.permutation(n)]
-    # Calculate the inverse Fourier transform to obtain the modified image
-    image_modified = np.abs(ifft2(image_fourier_noise))
-    # Convert the modified image back to a PIL image
-    return Image.fromarray(image_modified)
+    return augmented_data
 
 
 class TestDataset(data.Dataset):
@@ -87,20 +82,38 @@ class TestDataset(data.Dataset):
                                                         radius=positive_dist_threshold,
                                                         return_distance=False)
         
-        self.images_paths = [p for p in self.database_paths]
-        self.images_paths += [p for p in self.queries_paths]
+        # for each string in database_paths, create a string which contains that string preceded by -database
+        # for each string in queries_paths, create a string which contains that string preceded by -query
+        # concatenate the two lists
+
+        self.images_paths = ["database-" + p for p in self.database_paths] + ["query-" + p for p in self.queries_paths]
+        
+
+
+        # self.images_paths = [p for p in self.database_paths]
+        # self.images_paths += [p for p in self.queries_paths]
         
         self.database_num = len(self.database_paths)
         self.queries_num = len(self.queries_paths)
     
     def __getitem__(self, index):
-        if index < self.database_num:
+
+        #if the image_path at the specified index starts with database-
+        if self.images_paths[index].startswith("database-"):
             image_path = self.images_paths[index]
+
+            #remove database- from the string
+            image_path = image_path.replace("database-", "")
+
             pil_img = open_image(image_path)
             normalized_img = self.database_transform(pil_img)
             return normalized_img, index
         else:
             image_path = self.images_paths[index]
+
+            #remove query- from the string
+            image_path = image_path.replace("query-", "")
+
             pil_img = open_image(image_path)
             normalized_img = self.queries_transform(pil_img)
             return normalized_img, index

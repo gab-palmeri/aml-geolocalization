@@ -25,6 +25,9 @@ def fourier_data_augmentation(data):
     # Trasforma nuovamente i dati indietro nello spazio originale
     augmented_data = np.fft.ifft(fourier_transform)
 
+    #trasform augmented_data da 128 a float
+    augmented_data = augmented_data.astype(np.float32)
+
     return augmented_data
 
 

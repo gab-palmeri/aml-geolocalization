@@ -32,12 +32,12 @@ CHANNELS_NUM_IN_LAST_CONV = {
 
 
 class GeoLocalizationNet(nn.Module):
-    def __init__(self, backbone, fc_output_dim, pretrain, work_with_tokens=False):
+    def __init__(self, backbone, fc_output_dim, pretrain):
         super().__init__()
         self.backbone, features_dim = get_backbone(backbone, pretrain)
         self.aggregation = nn.Sequential(
                 L2Norm(),
-                get_gem(work_with_tokens=work_with_tokens),
+                GeM(),
                 Flatten(),
                 nn.Linear(features_dim, fc_output_dim),
                 L2Norm()
@@ -47,10 +47,6 @@ class GeoLocalizationNet(nn.Module):
         x = self.backbone(x)
         x = self.aggregation(x)
         return x
-
-def get_gem(work_with_tokens):
-    return GeM(work_with_tokens=work_with_tokens)
-
 
 def get_backbone(backbone_name, pretrain):
     weights='IMAGENET1K_V1'

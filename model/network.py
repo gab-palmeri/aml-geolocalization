@@ -146,14 +146,32 @@ def get_backbone(backbone_name, pretrain):
                 p.requires_grad = False # freeze all the layers except the last three blocks
         logging.debug("Train last three layers of Swin, freeze the previous ones")
 
-    elif backbone.startswith("cct"):
-        if backbone.startswith("cct384"):
-            backbone = cct_14_7x2_384(pretrained=True, progress=True, aggregation="seqpool")
+    elif backbone_name.startswith("cct"):
+        if backbone_name.startswith("cct384"):
+            backbone = cct_14_7x2_384(pretrained=True, progress=True, aggregation="seqpool", img_size=512)
 
         trunc_te = 8        # value from 04/01 Q&A 
         freeze_te = 1       # value from 04/01 Q&A
-
-        logging.debug(f"Truncate CCT at transformers encoder {trunc_te}")
+#
+#RuntimeError                              Traceback (most recent call last)
+#<ipython-input-11-b34c387226bd> in <module>
+#     60         else:  # Use AMP 16
+#     61             with torch.cuda.amp.autocast():
+#---> 62                 descriptors = model(images)
+#     63                 output = classifiers[current_group_num](descriptors, targets)
+#     64                 loss = criterion(output, targets)
+#
+#5 frames
+#/content/Team/model/cct/transformers.py in forward(self, x)
+#    195 
+#    196         if self.positional_emb is not None:
+#--> 197             x += self.positional_emb
+#    198 
+#    199         x = self.dropout(x)
+#
+#RuntimeError: The size of tensor a (1024) must match the size of tensor b (576) at non-singleton dimension 1
+#
+#        logging.debug(f"Truncate CCT at transformers encoder {trunc_te}")
         backbone.classifier.blocks = torch.nn.ModuleList(backbone.classifier.blocks[:trunc_te].children())
         logging.debug(f"Freeze all the layers up to tranformer encoder {freeze_te}")
         for p in backbone.parameters():

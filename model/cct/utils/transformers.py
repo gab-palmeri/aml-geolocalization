@@ -150,6 +150,7 @@ class TransformerClassifier(Module):
         self.embedding_dim = embedding_dim
         self.sequence_length = sequence_length
         self.seq_pool = seq_pool
+        self.num_tokens = 0
 
         assert sequence_length is not None or positional_embedding == 'none', \
             f"Positional embedding is set to {positional_embedding} and" \
@@ -159,6 +160,7 @@ class TransformerClassifier(Module):
             sequence_length += 1
             self.class_emb = Parameter(torch.zeros(1, 1, self.embedding_dim),
                                        requires_grad=True)
+            self.num_tokens = 1
         else:
             self.attention_pool = Linear(self.embedding_dim, 1)
 
@@ -182,7 +184,7 @@ class TransformerClassifier(Module):
             for i in range(num_layers)])
         self.norm = LayerNorm(embedding_dim)
 
-        # self.fc = Linear(embedding_dim, num_classes)
+        self.fc = Linear(embedding_dim, num_classes)
         self.apply(self.init_weight)
 
     def forward(self, x):
@@ -201,12 +203,13 @@ class TransformerClassifier(Module):
         for blk in self.blocks:
             x = blk(x)
         x = self.norm(x)
-        # TODO: TOREMOVE
-        # if self.seq_pool:
-        #    x = torch.matmul(F.softmax(self.attention_pool(x), dim=1).transpose(-1, -2), x).squeeze(-2)
-        #else:
-        #    x = x[:, 0]
-        # x = self.fc(x)
+
+        if self.seq_pool:
+            x = torch.matmul(F.softmax(self.attention_pool(x), dim=1).transpose(-1, -2), x).squeeze(-2)
+        else:
+            x = x[:, 0]
+
+        x = self.fc(x)
         return x
 
     @staticmethod
@@ -249,6 +252,7 @@ class MaskedTransformerClassifier(Module):
         self.embedding_dim = embedding_dim
         self.seq_len = seq_len
         self.seq_pool = seq_pool
+        self.num_tokens = 0
 
         assert seq_len is not None or positional_embedding == 'none', \
             f"Positional embedding is set to {positional_embedding} and" \
@@ -258,6 +262,7 @@ class MaskedTransformerClassifier(Module):
             seq_len += 1
             self.class_emb = Parameter(torch.zeros(1, 1, self.embedding_dim),
                                        requires_grad=True)
+            self.num_tokens = 1
         else:
             self.attention_pool = Linear(self.embedding_dim, 1)
 

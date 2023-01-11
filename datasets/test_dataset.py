@@ -72,7 +72,18 @@ class TestDataset(data.Dataset):
 
         self.images_path = ["database-" + p for p in self.database_paths] + ["query-" + p for p in self.queries_paths]
 
-
+        self.fourier_images = [
+            open_image("/content/Team/FDA/images/1.jpg"),
+            open_image("/content/Team/FDA/images/2.jpg"),
+            open_image("/content/Team/FDA/images/3.jpg"),
+            open_image("/content/Team/FDA/images/4.jpg"),
+            open_image("/content/Team/FDA/images/5.jpg"),
+            open_image("/content/Team/FDA/images/6.jpg"),
+            open_image("/content/Team/FDA/images/7.jpg"),
+            open_image("/content/Team/FDA/images/8.jpg"),
+            open_image("/content/Team/FDA/images/9.jpg"),
+            open_image("/content/Team/FDA/images/10.jpg")
+            ]
         # self.images_paths = [p for p in self.database_paths]
         # self.images_paths += [p for p in self.queries_paths]
         
@@ -94,10 +105,7 @@ class TestDataset(data.Dataset):
 
             #generate number between 1 and 10 and open a file with that name
             random_number = random.randint(1, 10)
-
-            path = "../FDA/images/" + str(random_number) + ".jpg"
-
-            im_trg = open_image(path)
+            im_trg = self.fouried_images[random_number]
 
             im_src_resized = im_src.resize( (1024,512), Image.BICUBIC )
             im_trg_resized = im_trg.resize( (1024,512), Image.BICUBIC )

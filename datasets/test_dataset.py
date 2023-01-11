@@ -68,9 +68,13 @@ class TestDataset(data.Dataset):
                                                         radius=positive_dist_threshold,
                                                         return_distance=False)
     
+        #Concatenate database and queries path, prefix database with database- and queries with query-
 
-        self.images_paths = [p for p in self.database_paths]
-        self.images_paths += [p for p in self.queries_paths]
+        self.images_path = ["database-" + p for p in self.database_paths] + ["query-" + p for p in self.queries_paths]
+
+
+        # self.images_paths = [p for p in self.database_paths]
+        # self.images_paths += [p for p in self.queries_paths]
         
         self.database_num = len(self.database_paths)
         self.queries_num = len(self.queries_paths)
@@ -78,32 +82,39 @@ class TestDataset(data.Dataset):
     def __getitem__(self, index):
         image_path = self.images_paths[index]
 
-        im_src = open_image(image_path)
-        im_size = np.asarray(im_src).shape
+        if image_path.startswith("database-"):
+            image_path = image_path.replace("database-", "")
+            image = open_image(image_path)
+            image = self.database_transform(image)
+            return image, image_path, None
+        else:
+            image_path = image_path.replace("query-", "")
+            im_src = open_image(image_path)
+            im_size = np.asarray(im_src).shape
 
-        #generate number between 1 and 10 and open a file with that name
-        random_number = random.randint(1, 10)
+            #generate number between 1 and 10 and open a file with that name
+            random_number = random.randint(1, 10)
 
-        path = "../FDA/images/" + str(random_number) + ".jpg"
+            path = "../FDA/images/" + str(random_number) + ".jpg"
 
-        im_trg = open_image(path)
+            im_trg = open_image(path)
 
-        im_src_resized = im_src.resize( (1024,512), Image.BICUBIC )
-        im_trg_resized = im_trg.resize( (1024,512), Image.BICUBIC )
+            im_src_resized = im_src.resize( (1024,512), Image.BICUBIC )
+            im_trg_resized = im_trg.resize( (1024,512), Image.BICUBIC )
 
-        im_src_arr = np.asarray(im_src_resized, np.float32)
-        im_trg_arr = np.asarray(im_trg_resized, np.float32)
+            im_src_arr = np.asarray(im_src_resized, np.float32)
+            im_trg_arr = np.asarray(im_trg_resized, np.float32)
 
-        im_src_arr_tps = im_src_arr.transpose((2, 0, 1))
-        im_trg_arr_tps = im_trg_arr.transpose((2, 0, 1))
+            im_src_arr_tps = im_src_arr.transpose((2, 0, 1))
+            im_trg_arr_tps = im_trg_arr.transpose((2, 0, 1))
 
-        src_in_trg = FDA_source_to_target_np(im_src_arr_tps, im_trg_arr_tps, L=0.01)
-        src_in_trg = src_in_trg.transpose((1,2,0))
+            src_in_trg = FDA_source_to_target_np(im_src_arr_tps, im_trg_arr_tps, L=0.01)
+            src_in_trg = src_in_trg.transpose((1,2,0))
 
-        final_image = Image.fromarray(scale(src_in_trg)).resize((im_size[1],im_size[0]), Image.BICUBIC)
+            final_image = Image.fromarray(scale(src_in_trg)).resize((im_size[1],im_size[0]), Image.BICUBIC)
 
-        normalized_img = self.database_transform(final_image)
-        return normalized_img, index
+            normalized_img = self.database_transform(final_image)
+            return normalized_img, index
 
     
     def __len__(self):

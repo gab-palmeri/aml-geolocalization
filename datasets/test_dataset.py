@@ -98,7 +98,7 @@ class TestDataset(data.Dataset):
             image = open_image(image_path)
             image = self.database_transform(image)
             return image, image_path, None
-        else:
+        elif image_path.startswith("query-"):
             image_path = image_path.replace("query-", "")
             im_src = open_image(image_path)
             im_size = np.asarray(im_src).shape

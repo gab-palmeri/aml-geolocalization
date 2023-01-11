@@ -70,7 +70,7 @@ class TestDataset(data.Dataset):
     
         #Concatenate database and queries path, prefix database with database- and queries with query-
 
-        self.images_path = ["database-" + p for p in self.database_paths] + ["query-" + p for p in self.queries_paths]
+        self.images_paths = ["database-" + p for p in self.database_paths] + ["query-" + p for p in self.queries_paths]
 
         self.fourier_images = [
             open_image("/content/Team/FDA/images/1.jpg"),

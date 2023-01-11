@@ -130,7 +130,7 @@ def get_backbone(backbone_name, pretrain):
 
     elif backbone_name.startswith("cct"):
         if backbone_name.startswith("cct384"):
-            backbone = cct_14_7x2_384(pretrained=True, progress=True, aggregation="seqpool")
+            backbone = cct_14_7x2_384(pretrained=True, progress=True, aggregation="seqpool", img_size=512)
 
         trunc_te = 8        # value from 04/01 Q&A 
         freeze_te = 1       # value from 04/01 Q&A

@@ -1,34 +1,17 @@
 import os
+import random
 import numpy as np
 from glob import glob
 from PIL import Image
 import torch.utils.data as data
 import torchvision.transforms as transforms
 from sklearn.neighbors import NearestNeighbors
-import imgaug as ia
-import imgaug.augmenters as iaa
 
-from scipy.fftpack import fft2, ifft2
+from FDA.fda import FDA_source_to_target_np, scale
 
 
 def open_image(path):
     return Image.open(path).convert("RGB")
-
-def fourier_data_augmentation(data):
-    # Trasforma i dati in una rappresentazione di spettro di Fourier
-    fourier_transform = np.fft.fft(data)
-
-    # Modifica l'ampiezza di alcune componenti
-    for i in range(len(fourier_transform)):
-        fourier_transform[i] *= np.random.uniform(low=0.5, high=1.5)
-
-    # Trasforma nuovamente i dati indietro nello spazio originale
-    augmented_data = np.fft.ifft(fourier_transform)
-
-    #trasform augmented_data da 128 a float
-    augmented_data = augmented_data.astype(np.float32)
-
-    return augmented_data
 
 
 class TestDataset(data.Dataset):
@@ -64,11 +47,11 @@ class TestDataset(data.Dataset):
         ])
 
         #QUERY TRANSFORM -> WITH FOURIER DATA AUGMENTATION
-        self.queries_transform = transforms.Compose([
-            transforms.Lambda(fourier_data_augmentation),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ])
+        # self.queries_transform = transforms.Compose([
+        #     FourierAugmentation().__call__(),
+        #     transforms.ToTensor(),
+        #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        # ])
         
         #### Read paths and UTM coordinates for all images.
         self.database_paths = sorted(glob(os.path.join(self.database_folder, "**", "*.jpg"), recursive=True))
@@ -89,37 +72,40 @@ class TestDataset(data.Dataset):
         # for each string in queries_paths, create a string which contains that string preceded by -query
         # concatenate the two lists
 
-        self.images_paths = ["database-" + p for p in self.database_paths] + ["query-" + p for p in self.queries_paths]
+        # self.images_paths = ["database-" + p for p in self.database_paths] + ["query-" + p for p in self.queries_paths]
         
 
 
-        # self.images_paths = [p for p in self.database_paths]
-        # self.images_paths += [p for p in self.queries_paths]
+        self.images_paths = [p for p in self.database_paths]
+        self.images_paths += [p for p in self.queries_paths]
         
         self.database_num = len(self.database_paths)
         self.queries_num = len(self.queries_paths)
     
     def __getitem__(self, index):
+        image_path = self.images_paths[index]
+        pil_img = open_image(image_path)
 
-        #if the image_path at the specified index starts with database-
-        if self.images_paths[index].startswith("database-"):
-            image_path = self.images_paths[index]
+        #generate number between 1 and 10 and open a file with that name
+        random_number = random.randint(1, 10)
+        pil_img2 = open_image(str(random_number) + ".jpg")
 
-            #remove database- from the string
-            image_path = image_path.replace("database-", "")
+        im_src_resized = pil_img.resize( (1024,512), Image.BICUBIC )
+        im_trg_resized = pil_img2.resize( (1024,512), Image.BICUBIC )
 
-            pil_img = open_image(image_path)
-            normalized_img = self.database_transform(pil_img)
-            return normalized_img, index
-        else:
-            image_path = self.images_paths[index]
+        im_src_arr = np.asarray(im_src_resized, np.float32)
+        im_trg_arr = np.asarray(im_trg_resized, np.float32)
 
-            #remove query- from the string
-            image_path = image_path.replace("query-", "")
+        im_src_arr_tps = im_src_arr.transpose((2, 0, 1))
+        im_trg_arr_tps = im_trg_arr.transpose((2, 0, 1))
 
-            pil_img = open_image(image_path)
-            normalized_img = self.queries_transform(pil_img)
-            return normalized_img, index
+        #apply FDA from between pil_img and pil_img2
+        pil_img = FDA_source_to_target_np(im_src_arr_tps, im_trg_arr_tps, random_number)
+
+        pil_img = scale(pil_img.transpose((1,2,0)))
+
+        normalized_img = self.database_transform(pil_img)
+        return normalized_img, index
 
     
     def __len__(self):

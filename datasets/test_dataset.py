@@ -77,13 +77,16 @@ class TestDataset(data.Dataset):
     
     def __getitem__(self, index):
         image_path = self.images_paths[index]
-        
+
         im_src = open_image(image_path)
         im_size = np.asarray(im_src).shape
 
         #generate number between 1 and 10 and open a file with that name
         random_number = random.randint(1, 10)
-        im_trg = open_image(str(random_number) + ".jpg")
+
+        path = "../FDA/images/" + str(random_number) + ".jpg"
+
+        im_trg = open_image(path)
 
         im_src_resized = im_src.resize( (1024,512), Image.BICUBIC )
         im_trg_resized = im_trg.resize( (1024,512), Image.BICUBIC )

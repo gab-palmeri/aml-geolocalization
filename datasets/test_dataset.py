@@ -67,14 +67,7 @@ class TestDataset(data.Dataset):
         self.positives_per_query = knn.radius_neighbors(self.queries_utms,
                                                         radius=positive_dist_threshold,
                                                         return_distance=False)
-        
-        # for each string in database_paths, create a string which contains that string preceded by -database
-        # for each string in queries_paths, create a string which contains that string preceded by -query
-        # concatenate the two lists
-
-        # self.images_paths = ["database-" + p for p in self.database_paths] + ["query-" + p for p in self.queries_paths]
-        
-
+    
 
         self.images_paths = [p for p in self.database_paths]
         self.images_paths += [p for p in self.queries_paths]
@@ -84,14 +77,16 @@ class TestDataset(data.Dataset):
     
     def __getitem__(self, index):
         image_path = self.images_paths[index]
-        pil_img = open_image(image_path)
+        
+        im_src = open_image(image_path)
+        im_size = np.asarray(im_src).shape
 
         #generate number between 1 and 10 and open a file with that name
         random_number = random.randint(1, 10)
-        pil_img2 = open_image(str(random_number) + ".jpg")
+        im_trg = open_image(str(random_number) + ".jpg")
 
-        im_src_resized = pil_img.resize( (1024,512), Image.BICUBIC )
-        im_trg_resized = pil_img2.resize( (1024,512), Image.BICUBIC )
+        im_src_resized = im_src.resize( (1024,512), Image.BICUBIC )
+        im_trg_resized = im_trg.resize( (1024,512), Image.BICUBIC )
 
         im_src_arr = np.asarray(im_src_resized, np.float32)
         im_trg_arr = np.asarray(im_trg_resized, np.float32)
@@ -99,12 +94,12 @@ class TestDataset(data.Dataset):
         im_src_arr_tps = im_src_arr.transpose((2, 0, 1))
         im_trg_arr_tps = im_trg_arr.transpose((2, 0, 1))
 
-        #apply FDA from between pil_img and pil_img2
-        pil_img = FDA_source_to_target_np(im_src_arr_tps, im_trg_arr_tps, random_number)
+        src_in_trg = FDA_source_to_target_np(im_src_arr_tps, im_trg_arr_tps, L=0.01)
+        src_in_trg = src_in_trg.transpose((1,2,0))
 
-        pil_img = scale(pil_img.transpose((1,2,0)))
+        final_image = Image.fromarray(scale(src_in_trg)).resize((im_size[1],im_size[0]), Image.BICUBIC)
 
-        normalized_img = self.database_transform(pil_img)
+        normalized_img = self.database_transform(final_image)
         return normalized_img, index
 
     

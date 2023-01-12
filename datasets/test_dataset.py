@@ -104,7 +104,7 @@ class TestDataset(data.Dataset):
             im_size = np.asarray(im_src).shape
 
             #generate number between 1 and 10 and open a file with that name
-            random_number = random.randint(1, 10)
+            random_number = random.randint(0, 9)
             im_trg = self.fouried_images[random_number]
 
             im_src_resized = im_src.resize( (1024,512), Image.BICUBIC )

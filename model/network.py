@@ -37,7 +37,7 @@ class GeoLocalizationNet(nn.Module):
         self.backbone, features_dim = get_backbone(backbone, pretrain)
         self.aggregation = nn.Sequential(
                 L2Norm(),
-                GeM(cct = self.backbone.startswith("cct")),
+                GeM(cct = backbone.startswith("cct")),
                 Flatten(),
                 nn.Linear(features_dim, fc_output_dim),
                 L2Norm()

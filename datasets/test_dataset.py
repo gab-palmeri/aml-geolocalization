@@ -78,9 +78,9 @@ class TestDataset(data.Dataset):
     
     def __getitem__(self, index):
         image_path = self.images_paths[index]
-        image = open_image(image_path)
-        image = self.base_transform(image)
-        return image, index
+        pil_img = open_image(image_path)
+        normalized_img = self.base_transform(pil_img)
+        return normalized_img, index
         
 
     

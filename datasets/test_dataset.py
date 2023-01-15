@@ -48,13 +48,14 @@ class TestDataset(data.Dataset):
 
         self.database_paths = glob(os.path.join(self.database_folder, "**", "*.jpg"), recursive=True)
 
-        #for all items in database_paths, sort them in alphabetical order.
-        #If the string starts with "aug-", replace that part with "" and then sort
-        self.database_paths = sorted(self.database_paths, key=lambda x: x.replace("aug-", ""))
+        
 
         
         #### Read paths and UTM coordinates for all images.
         #self.database_paths = sorted(glob(os.path.join(self.database_folder, "**", "*.jpg"), recursive=True))
+        #for all items in database_paths, sort them in alphabetical order.
+        #If the string starts with "aug-", replace that part with "" and then sort
+        self.database_paths = sorted(self.database_paths, key=lambda x: x.replace("aug-", ""))
         self.queries_paths = sorted(glob(os.path.join(self.queries_folder, "**", "*.jpg"),  recursive=True))
         
         # The format must be path/to/file/@utm_easting@utm_northing@...@.jpg
@@ -68,6 +69,9 @@ class TestDataset(data.Dataset):
                                                         radius=positive_dist_threshold,
                                                         return_distance=False)
     
+        self.images_paths = [p for p in self.database_paths]
+        self.images_paths += [p for p in self.queries_paths]
+        
         
         self.database_num = len(self.database_paths)
         self.queries_num = len(self.queries_paths)

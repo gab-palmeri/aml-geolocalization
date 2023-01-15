@@ -41,24 +41,24 @@ class TestDataset(data.Dataset):
             raise FileNotFoundError(f"Folder {self.queries_folder} does not exist")
         
         #DATABASE TRANSFORM
-        self.database_transform = transforms.Compose([
+        self.base_transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
 
-        #QUERY TRANSFORM -> WITH FOURIER DATA AUGMENTATION
-        # self.queries_transform = transforms.Compose([
-        #     FourierAugmentation().__call__(),
-        #     transforms.ToTensor(),
-        #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        # ])
+        self.database_paths = glob(os.path.join(self.database_folder, "**", "*.jpg"), recursive=True)
+
+        #for all items in database_paths, sort them in alphabetical order.
+        #If the string starts with "aug-", replace that part with "" and then sort
+        self.database_paths = sorted(self.database_paths, key=lambda x: x.replace("aug-", ""))
+
         
         #### Read paths and UTM coordinates for all images.
-        self.database_paths = sorted(glob(os.path.join(self.database_folder, "**", "*.jpg"), recursive=True))
+        #self.database_paths = sorted(glob(os.path.join(self.database_folder, "**", "*.jpg"), recursive=True))
         self.queries_paths = sorted(glob(os.path.join(self.queries_folder, "**", "*.jpg"),  recursive=True))
         
         # The format must be path/to/file/@utm_easting@utm_northing@...@.jpg
-        self.database_utms = np.array([(path.split("@")[1], path.split("@")[2]) for path in self.database_paths]).astype(float)
+        self.database_utms = np.array([(path.replace("aug-","").split("@")[1], path.replace("aug-","").split("@")[2]) for path in self.database_paths]).astype(float)
         self.queries_utms = np.array([(path.split("@")[1], path.split("@")[2]) for path in self.queries_paths]).astype(float)
         
         # Find positives_per_query, which are within positive_dist_threshold (default 25 meters)
@@ -68,10 +68,6 @@ class TestDataset(data.Dataset):
                                                         radius=positive_dist_threshold,
                                                         return_distance=False)
     
-        #Concatenate database and queries path, prefix database with database- and queries with query-
-
-        self.images_paths = [p for p in self.database_paths]
-        self.images_paths += [p for p in self.queries_paths]
         
         self.database_num = len(self.database_paths)
         self.queries_num = len(self.queries_paths)
@@ -79,8 +75,9 @@ class TestDataset(data.Dataset):
     def __getitem__(self, index):
         image_path = self.images_paths[index]
         image = open_image(image_path)
-        image = self.database_transform(image)
-        return image, image_path, None
+        image = self.base_transform(image)
+        return image, index
+        
 
     
     def __len__(self):

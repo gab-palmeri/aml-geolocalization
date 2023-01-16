@@ -7,8 +7,6 @@ import torch.utils.data as data
 import torchvision.transforms as transforms
 from sklearn.neighbors import NearestNeighbors
 
-from FDA.fda import FDA_source_to_target_np, scale
-
 
 def open_image(path):
     return Image.open(path).convert("RGB")
@@ -47,8 +45,6 @@ class TestDataset(data.Dataset):
         ])
 
         self.database_paths = glob(os.path.join(self.database_folder, "**", "*.jpg"), recursive=True)
-
-        
 
         
         #### Read paths and UTM coordinates for all images.

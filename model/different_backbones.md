@@ -22,6 +22,13 @@ In order to speed up the training process, we set AMP to true for all tests, the
 
 For all of the test we used the Cosface loss function.
 
+## Why these backbones?
+This backbones have been chosen for different reasons:
+- ResNet-18 is the default backbone of the project, so we have to consider it
+- EffiecientNets and MobileNets are networks that have a good tradeoff between accuracy and computational resources usage, that is crucial for our computational resources
+- ConvNext is a 2022 network, so we decided to consider it in order to see if a new network can be better than the others
+- Swin Tiny is a Transformer network and we decided to consider it because is a different type of network from the others
+
 ## Backbone freeze and truncation
 Each backbone has a different number of layers and of output channels, so we have to consider how to use them in our model.
 

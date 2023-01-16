@@ -40,8 +40,9 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, test_method 
             descriptors = descriptors.cpu().numpy()
             all_descriptors[indices.numpy(), :] = descriptors
         
-        logging.debug("Extracting queries descriptors for evaluation/testing using batch size 1")
         queries_infer_batch_size = 1 if test_method == "single_query" else args.infer_batch_size
+        logging.debug(f"Extracting queries descriptors for evaluation/testing using batch size {queries_infer_batch_size}")
+        
         eval_ds.test_method = test_method
         queries_subset_ds = Subset(eval_ds, list(range(eval_ds.database_num, eval_ds.database_num+eval_ds.queries_num)))
         queries_dataloader = DataLoader(dataset=queries_subset_ds, num_workers=args.num_workers,
@@ -59,8 +60,8 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, test_method 
                 end_idx = start_idx + 5 * indices.shape[0]
                 indices = np.arange(start_idx, end_idx)
                 all_descriptors[indices, :] = descriptors
-
-            all_descriptors[indices.numpy(), :] = descriptors
+            else:
+                all_descriptors[indices.numpy(), :] = descriptors
     
     queries_descriptors = all_descriptors[eval_ds.database_num:]
     database_descriptors = all_descriptors[:eval_ds.database_num]

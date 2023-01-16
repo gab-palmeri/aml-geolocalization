@@ -222,6 +222,10 @@ class SamTestDataset(data.Dataset):
             proc_img = torch.stack(transforms.functional.five_crop(proc_img, shorter_side))
             assert proc_img.shape == torch.Size([5, 3, shorter_side, shorter_side]), \
                 f"{proc_img.shape} {torch.Size([5, 3, shorter_side, shorter_side])}"
+        elif self.test_method == "five_custom":
+            shorter_side = min(self.db_image_size)
+            proc_img = transforms.functional.resize(img, shorter_side)
+            proc_img = torch.stack(proc_img, [transforms.functional.perspective(proc_img) for _ in range(4)])
         else:
             # single query
             proc_img = transforms.functional.resize(img, min(self.db_image_size))

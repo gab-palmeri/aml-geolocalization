@@ -19,7 +19,7 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, test_method 
     
     if test_method:
         assert test_method in ["database", "single_query", "central_crop", "five_crops",
-                           "nearest_crop", "maj_voting"], f"test_method can't be {test_method}"
+                           "nearest_crop", "maj_voting", "five_custom"], f"test_method can't be {test_method}"
 
     model = model.eval()
     with torch.no_grad():
@@ -30,8 +30,8 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, test_method 
                                          batch_size=args.infer_batch_size, pin_memory=(args.device == "cuda"))
 
         # consider the case in which data augmentation is used
-        if test_method == "nearest_crop" or test_method == "maj_voting":
-            all_descriptors = np.empty((5*eval_ds.queries_num + eval_ds.database_num, args.features_dim), dtype="float32")
+        if test_method == "nearest_crop" or test_method == "maj_voting" or test_method == "five_custom":
+            all_descriptors = np.empty((5*eval_ds.queries_num + eval_ds.database_num, args.fc_output_dim), dtype="float32")
         else:
             all_descriptors = np.empty((len(eval_ds), args.fc_output_dim), dtype="float32")
 
@@ -74,7 +74,9 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, test_method 
     logging.debug("Calculating recalls")
     distances, predictions = faiss_index.search(queries_descriptors, max(RECALL_VALUES))
 
-    if test_method == "nearest_crop":
+    # post processing
+
+    if test_method == "nearest_crop" or test_method == "five_custom":
         distances = np.reshape(distances, (eval_ds.queries_num, 20*5))
         predictions = np.reshape(predictions, (eval_ds.queries_num, 20*5))
         for q in range(eval_ds.queries_num):

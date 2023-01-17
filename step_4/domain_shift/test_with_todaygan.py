@@ -33,8 +33,8 @@ def open_image_and_apply_transform(image_path):
 def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module) -> Tuple[np.ndarray, str]:
     """Compute descriptors of the given dataset and compute the recalls."""
 
-    toDayModel = network.GeoLocalizationNet()
-    toDayModel.load_state_dict(torch.load('model_best.pth'))
+    toDayModel = network.GeoLocalizationNetV2(args.backbone, args.fc_output_dim, args.pretrain)
+    toDayModel.load_state_dict(torch.load('150_net_G3.pth'))
     toDayModel = toDayModel.eval()
     
     model = model.eval()
@@ -58,6 +58,12 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module) -> Tuple[np.
 
             toDayModel.set_input(images)
             toDayModel.test()
+
+            #get the image
+            img_path = toDayModel.get_image_paths()
+
+            #open the image
+            images = open_image_and_apply_transform(img_path)
 
             descriptors = model(images.to(args.device))
             descriptors = descriptors.cpu().numpy()

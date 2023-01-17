@@ -1,5 +1,3 @@
-
-import faiss
 import torch
 import logging
 from PIL import Image

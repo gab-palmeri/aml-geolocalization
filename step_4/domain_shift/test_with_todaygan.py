@@ -1,3 +1,4 @@
+import faiss
 import torch
 import logging
 from PIL import Image
@@ -9,7 +10,6 @@ from torch.utils.data.dataset import Subset
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 
-from model import network
 
 # Compute R@1, R@5, R@10, R@20
 RECALL_VALUES = [1, 5, 10, 20]
@@ -28,10 +28,10 @@ def open_image_and_apply_transform(image_path):
     return tensor_image
 
 
-def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module) -> Tuple[np.ndarray, str]:
+def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, today: torch.nn.Module) -> Tuple[np.ndarray, str]:
     """Compute descriptors of the given dataset and compute the recalls."""
 
-    toDayModel = network.GeoLocalizationNetV2(args.backbone, args.fc_output_dim, args.pretrain)
+    toDayModel = today
     toDayModel.load_state_dict(torch.load('150_net_G3.pth'))
     toDayModel = toDayModel.eval()
     

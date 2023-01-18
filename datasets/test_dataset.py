@@ -225,7 +225,18 @@ class SamTestDataset(data.Dataset):
         elif self.test_method == "five_custom":
             shorter_side = min(self.db_image_size)
             proc_img = transforms.functional.resize(img, shorter_side)
-            proc_img = torch.stack(proc_img, [transforms.functional.perspective(proc_img) for _ in range(4)])
+            
+            perspective_trans = transforms.RandomPerspective(distortion_scale=0.5, p=1.0, interpolation=3)
+            proc_img = torch.stack([
+                proc_img,
+                perspective_trans(proc_img),
+                perspective_trans(proc_img),
+                perspective_trans(proc_img),
+                perspective_trans(proc_img),
+                perspective_trans(proc_img),
+            ])
+
+            #proc_img = torch.stack(proc_img, [transforms.functional.perspective(proc_img) for _ in range(4)])
         else:
             # single query
             proc_img = transforms.functional.resize(img, min(self.db_image_size))

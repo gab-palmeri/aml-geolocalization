@@ -223,20 +223,21 @@ class SamTestDataset(data.Dataset):
             assert proc_img.shape == torch.Size([5, 3, shorter_side, shorter_side]), \
                 f"{proc_img.shape} {torch.Size([5, 3, shorter_side, shorter_side])}"
         elif self.test_method == "five_custom":
-            shorter_side = min(self.db_image_size)
-            proc_img = transforms.functional.resize(img, shorter_side)
+            custom_transforms = transforms.Compose([
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomPerspective(),
+                transforms.CenterCrop(self.db_image_size),
+            ])
+            # like center crop
+            scale = max(self.db_image_size[0]/H, self.db_image_size[1]/W)
+            proc_img = torch.nn.functional.interpolate(img.unsqueeze(0), scale_factor=scale).squeeze(0)
+            proc_img = transforms.functional.center_crop(proc_img, self.db_image_size)
             
-            perspective_trans = transforms.RandomPerspective(distortion_scale=0.5, p=1.0, interpolation=3)
+            # five crops approach
             proc_img = torch.stack([
                 proc_img,
-                perspective_trans(proc_img),
-                perspective_trans(proc_img),
-                perspective_trans(proc_img),
-                perspective_trans(proc_img),
-                perspective_trans(proc_img),
+                *[custom_transforms(proc_img) for _ in range(4)]
             ])
-
-            #proc_img = torch.stack(proc_img, [transforms.functional.perspective(proc_img) for _ in range(4)])
         else:
             # single query
             proc_img = transforms.functional.resize(img, min(self.db_image_size))

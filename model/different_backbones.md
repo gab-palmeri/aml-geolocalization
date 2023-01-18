@@ -45,7 +45,7 @@ Technically we should take into acount also other factors like the complexity of
 Our reference is ResNet-18 with AMP set to false, that is the default backbone of the project.
 
 ### Training time
-*We calculated training time considering the effective training time and the validation time inside the training loop.*
+As training time, we consider the time needed to train the model for the given epoch and number of iterations plus the time needed to validate the model. In this way we consider not only the effective training time, but also inference time, so the time needed by test function that is shared between validation and test.
 
 MobileNet V3 Small is the fastest one, but it's the one with worst recalls, then there are MobileNet V3 Large and ResNet-18 (with AMP ON) that have the same times, with little difference in the recalls.
 

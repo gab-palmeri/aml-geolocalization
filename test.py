@@ -48,14 +48,14 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, test_method 
         queries_dataloader = DataLoader(dataset=queries_subset_ds, num_workers=args.num_workers,
                                         batch_size=queries_infer_batch_size, pin_memory=(args.device == "cuda"))
         for images, indices in tqdm(queries_dataloader, ncols=100):
-            if test_method == "five_crops" or test_method == "nearest_crop" or test_method == "maj_voting":
+            if test_method in ["five_crops", "nearest_crop", "maj_voting", "five_custom"]:
                 images = torch.cat(tuple(images))
             descriptors = model(images.to(args.device))
             if test_method == "five_crops":
                 descriptors = torch.stack(torch.split(descriptors, 5)).mean(1)
             descriptors = descriptors.cpu().numpy()
 
-            if test_method == "nearest_crop" or test_method == "maj_voting":
+            if test_method in ["nearest_crop", "maj_voting", "five_custom"]:
                 start_idx = eval_ds.database_num + 5*(indices[0] - eval_ds.database_num)
                 end_idx = start_idx + 5 * indices.shape[0]
                 indices = np.arange(start_idx, end_idx)
@@ -76,7 +76,7 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, test_method 
 
     # post processing
 
-    if test_method == "nearest_crop" or test_method == "five_custom":
+    if test_method in ["nearest_crop", "five_custom"]:
         distances = np.reshape(distances, (eval_ds.queries_num, 20*5))
         predictions = np.reshape(predictions, (eval_ds.queries_num, 20*5))
         for q in range(eval_ds.queries_num):

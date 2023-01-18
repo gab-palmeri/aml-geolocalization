@@ -14,12 +14,12 @@ from torch.utils.data import DataLoader, Dataset
 RECALL_VALUES = [1, 5, 10, 20]
 
 
-def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, test_method = "database") -> Tuple[np.ndarray, str]:
+def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, test_method = None) -> Tuple[np.ndarray, str]:
     """Compute descriptors of the given dataset and compute the recalls."""
     
     if test_method:
         assert test_method in ["database", "single_query", "central_crop", "five_crops",
-                           "nearest_crop", "maj_voting", "five_custom"], f"test_method can't be {test_method}"
+                           "nearest_crop", "maj_voting", "five_custom", None], f"test_method can't be {test_method}"
 
     model = model.eval()
     with torch.no_grad():
@@ -30,7 +30,7 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, test_method 
                                          batch_size=args.infer_batch_size, pin_memory=(args.device == "cuda"))
 
         # consider the case in which data augmentation is used
-        if test_method == "nearest_crop" or test_method == "maj_voting" or test_method == "five_custom":
+        if test_method in ["nearest_crop", "maj_voting", "five_custom"]:
             all_descriptors = np.empty((5*eval_ds.queries_num + eval_ds.database_num, args.fc_output_dim), dtype="float32")
         else:
             all_descriptors = np.empty((len(eval_ds), args.fc_output_dim), dtype="float32")
@@ -40,7 +40,7 @@ def test(args: Namespace, eval_ds: Dataset, model: torch.nn.Module, test_method 
             descriptors = descriptors.cpu().numpy()
             all_descriptors[indices.numpy(), :] = descriptors
         
-        queries_infer_batch_size = 1 if test_method == "single_query" else args.infer_batch_size
+        queries_infer_batch_size = 1 if test_method in ["single_query", None] else args.infer_batch_size
         logging.debug(f"Extracting queries descriptors for evaluation/testing using batch size {queries_infer_batch_size}")
         
         eval_ds.test_method = test_method

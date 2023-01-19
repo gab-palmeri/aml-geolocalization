@@ -137,7 +137,7 @@ class TestDataset(data.Dataset):
 
 class SamTestDataset(data.Dataset):
     def __init__(self, dataset_folder, database_folder="database",
-                 queries_folder="queries", positive_dist_threshold=25, args = None):
+                 queries_folder="queries", positive_dist_threshold=25, test_method = None, resize = False):
         """Dataset with images from database and queries, used for validation and test.
         Parameters
         ----------
@@ -155,8 +155,7 @@ class SamTestDataset(data.Dataset):
         self.dataset_name = os.path.basename(dataset_folder)
 
         # data augmentation stuff
-        if args is not None:
-            self.test_method = args.test_method
+        self.test_method = test_method
         
         if not os.path.exists(self.dataset_folder):
             raise FileNotFoundError(f"Folder {self.dataset_folder} does not exist")
@@ -179,9 +178,11 @@ class SamTestDataset(data.Dataset):
         self.queries_utms = np.array([(path.split("@")[1], path.split("@")[2]) for path in self.queries_paths]).astype(float)
         
         # set db image size (height, width)
-        if args is not None:
-            self.db_image_size = Image.open(self.database_paths[0]).size if args.resize_as_db else None
-            self.db_image_size = (self.db_image_size[1], self.db_image_size[0]) if self.db_image_size else None
+        if resize:
+            self.db_image_size = Image.open(self.database_paths[0]).size
+            self.db_image_size = (self.db_image_size[1], self.db_image_size[0])
+        else:
+            self.db_image_size = None
 
         # Find positives_per_query, which are within positive_dist_threshold (default 25 meters)
         knn = NearestNeighbors(n_jobs=-1)

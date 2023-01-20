@@ -5,18 +5,23 @@ import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 
 
-def gem(x, p=torch.ones(1)*3, eps: float = 1e-6):
+def gem(x, p=torch.ones(1)*3, eps: float = 1e-6, cct: bool = False):
+    if cct:
+        x = x.permute(0, 2, 1)
+        # unseqeeze to maintain compatibility with Flatten
+        return F.avg_pool1d(x.clamp(min=eps).pow(p), (x.size(-1))).pow(1./p).unsqueeze(3)
     return F.avg_pool2d(x.clamp(min=eps).pow(p), (x.size(-2), x.size(-1))).pow(1./p)
 
 
 class GeM(nn.Module):
-    def __init__(self, p=3, eps=1e-6):
+    def __init__(self, p=3, eps=1e-6, cct=False):
         super().__init__()
         self.p = Parameter(torch.ones(1)*p)
         self.eps = eps
+        self.cct = cct
     
     def forward(self, x):
-        return gem(x, p=self.p, eps=self.eps)
+        return gem(x, p=self.p, eps=self.eps, cct=self.cct)
     
     def __repr__(self):
         return f"{self.__class__.__name__}(p={self.p.data.tolist()[0]:.4f}, eps={self.eps})"

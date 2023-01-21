@@ -135,17 +135,17 @@ def evaluate_greedy_soup(args, datasets, params):
     model.eval()
     with torch.no_grad():
             # load the dataset
-            for dataset in datasets:
-                queries_folder = "queries_v1" if "small" in dataset and "test" in dataset else "queries"
+            for k in datasets:
+                queries_folder = "queries_v1" if "small" in datasets[k] and "test" in datasets[k] else "queries"
 
-                test_ds = SamTestDataset(dataset, queries_folder=queries_folder, positive_dist_threshold=args.positive_dist_threshold)
+                test_ds = SamTestDataset(datasets[k], queries_folder=queries_folder, positive_dist_threshold=args.positive_dist_threshold)
                 recall, recall_str = test(args, test_ds, model, test_method=args.test_method)
                 # free memory
                 del test_ds
                 
-                results[dataset] = recall
+                results[k] = recall
                 
-                logging.info(f"{dataset} {recall_str}")
+                logging.info(f"{k} {recall_str}")
     return results
 
 

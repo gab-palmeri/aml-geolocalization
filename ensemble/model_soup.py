@@ -5,15 +5,18 @@ from os import listdir, path
 from ..model.ensemble import get_model_from_sd
 from ..datasets.test_dataset import SamTestDataset
 from ..test import test
+from ..model.network import GeoLocalizationNet
 
-def evaluate_individual_models(args, base_model, weights_path, datasets):
+def evaluate_individual_models(args, weights_path, datasets):
     results = {}
-    for i, weights in enumerate(listdir(weights_path)):
+    models = [x for x in listdir(weights_path) if "pth" in x]
+    for i, weights in enumerate(models):
         logging.debug(f"({i}) Loading weights {weights}")
 
         # Load the weights
         state_dict = torch.load(path.join(weights_path, weights))
-        model = get_model_from_sd(state_dict, base_model)
+        model = GeoLocalizationNet(args.backbone, args.fc_output_dim, args.pretrain)
+        model.load_state_dict(state_dict)
         model = model.to(args.device)
         model.eval()
         with torch.no_grad():
@@ -82,7 +85,8 @@ def greedy_soup(args, base_model, weights_path, datasets_paths_map, val_ds_path,
         } 
 
         # run model with the new ingredients
-        model = get_model_from_sd(potential_ingredients, base_model)
+        model = GeoLocalizationNet(args.backbone, args.fc_output_dim, args.pretrain)
+        model.load_state_dict(potential_ingredients)
         model = model.to(args.device)
         model.eval()
         recall_to_compare = 0.
@@ -108,7 +112,8 @@ def greedy_soup(args, base_model, weights_path, datasets_paths_map, val_ds_path,
 def evaluate_greedy_soup(args, base_model, datasets, params):
     results = {}
     
-    model = get_model_from_sd(params, base_model)
+    model = GeoLocalizationNet(args.backbone, args.fc_output_dim, args.pretrain)
+    model.load_state_dict(params)
     model = model.to(args.device)
     model.eval()
     with torch.no_grad():

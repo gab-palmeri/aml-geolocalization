@@ -2,10 +2,11 @@ import torch
 import logging
 import numpy as np
 from os import listdir, path
-from ..model.ensemble import get_model_from_sd
 from ..datasets.test_dataset import SamTestDataset
 from ..test import test
 from ..model.network import GeoLocalizationNet
+
+# ModelSoup: https://github.com/mlfoundations/model-soups
 
 def evaluate_individual_models(args, weights_path, datasets):
     results = {}
@@ -22,61 +23,73 @@ def evaluate_individual_models(args, weights_path, datasets):
         with torch.no_grad():
             # load the dataset
             for dataset in datasets:
-                queries_folder = "queries_v1" if "small" in dataset and "test" in dataset else "queries"
-
-                test_ds = SamTestDataset(dataset, queries_folder=queries_folder, positive_dist_threshold=args.positive_dist_threshold)
+                queries_folder = "queries_v1" if "small" in datasets[dataset] and "test" in datasets[dataset] else "queries"
+                logging.debug(f"Tesing dataset {dataset}")
+                test_ds = SamTestDataset(datasets[dataset], queries_folder=queries_folder, positive_dist_threshold=args.positive_dist_threshold)
                 recall, recall_str = test(args, test_ds, model, test_method=args.test_method)
                 # free memory
                 del test_ds
                 
-                if results[weights] is None:
-                    results[weights] = {dataset: recall}
-                else:
+                if weights in results:
                     results[weights][dataset] = recall
+                else:
+                    results[weights] = {dataset: recall}
                 
-                logging.debug(f"({i}) {weights} {dataset} {recall_str}")
+                logging.info(f"({i}) {weights} {dataset} {recall_str}")
         
         del model
         del state_dict
     return results
 
-def greedy_soup(args, base_model, weights_path, datasets_paths_map, val_ds_path, results, sort_by="sf_r1"):
+def greedy_soup(args, weights_path, datasets_paths_map, results, sort_by="sf_r1"):
     assert sort_by in [
-                        "tn_r1", "tn_r5" \
+                        "tn_r1", "tn_r5", \
                         "sf_r1", "sf_r5", \
                         "ts_r1", "ts_r5", \
                         "sf_val_r1", "sf_val_r5"
-                    ]
+                    ], f"sort_by must be one of the following: tn_r1, tn_r5, sf_r1, sf_r5, ts_r1, ts_r5, sf_val_r1, sf_val_r5. Got {sort_by}"
 
     # sort the models by the best recall on a specific dataset
     sorted_models = []
     if sort_by == "tn_r1":
-        sorted_models = sorted(results.items(), key=lambda x: x[1][datasets_paths_map["tokyo-night"]][0], reverse=True)
+        sorted_models = sorted(results.items(), key=lambda x: x[1]["tokyo-night"][0], reverse=True)
     elif sort_by == "tn_r5":
-        sorted_models = sorted(results.items(), key=lambda x: x[1][datasets_paths_map["tokyo-night"]][1], reverse=True)
+        sorted_models = sorted(results.items(), key=lambda x: x[1]["tokyo-night"][1], reverse=True)
     elif sort_by == "ts_r1":
-        sorted_models = sorted(results.items(), key=lambda x: x[1][datasets_paths_map["tokyo-xs"]][0], reverse=True)
+        sorted_models = sorted(results.items(), key=lambda x: x[1]["tokyo-xs"][0], reverse=True)
     elif sort_by == "ts_r5":
-        sorted_models = sorted(results.items(), key=lambda x: x[1][datasets_paths_map["tokyo-xs"]][1], reverse=True)
+        sorted_models = sorted(results.items(), key=lambda x: x[1]["tokyo-xs"][1], reverse=True)
     elif sort_by == "sf_r1":
-        sorted_models = sorted(results.items(), key=lambda x: x[1][datasets_paths_map["sf-xs"]][0], reverse=True)
+        sorted_models = sorted(results.items(), key=lambda x: x[1]["sf-xs"][0], reverse=True)
     elif sort_by == "sf_r5":
-        sorted_models = sorted(results.items(), key=lambda x: x[1][datasets_paths_map["sf-xs"]][1], reverse=True)
+        sorted_models = sorted(results.items(), key=lambda x: x[1]["sf-xs"][1], reverse=True)
     elif sort_by == "sf_val_r1":
-        sorted_models = sorted(results.items(), key=lambda x: x[1][datasets_paths_map["sf-val"]][0], reverse=True)
+        sorted_models = sorted(results.items(), key=lambda x: x[1]["sf-val"][0], reverse=True)
     elif sort_by == "sf_val_r5":
-        sorted_models = sorted(results.items(), key=lambda x: x[1][datasets_paths_map["sf-val"]][1], reverse=True)
+        sorted_models = sorted(results.items(), key=lambda x: x[1]["sf-val"][1], reverse=True)
+
 
     greedy_soup_ingredients = [sorted_models[0][0]]
     greedy_soup_params = torch.load(path.join(weights_path, sorted_models[0][0]))
 
-    best_recall_so_far = sorted_models[0][1]["sf-val"][0]
-    val_ds = SamTestDataset(val_ds_path, queries_folder="queries_v1", positive_dist_threshold=args.positive_dist_threshold)
+    queries = "queries"
+    if "tn" in sort_by:
+        key = "tokyo-night"
+    elif "ts" in sort_by:
+        key = "tokyo-xs"
+    elif "sf_val" in sort_by:
+        key = "sf-val"
+    else:
+        key = "sf-xs"
+        queries = "queries_v1"
+    
+    best_recall_so_far = sorted_models[0][1][key][0]
+    val_ds = SamTestDataset(datasets_paths_map[key], queries_folder=queries, positive_dist_threshold=args.positive_dist_threshold)
 
-    for i, weights in enumerate(results):
+    for i, weights in enumerate([x[0] for x in sorted_models]):
         if i == 0: continue
 
-        logging.debug("Testing greedy soup with {weights}")
+        logging.debug(f"Testing greedy soup with {weights}")
         new_ingredients = torch.load(path.join(weights_path, weights))
         num_ingredients = len(greedy_soup_ingredients)
         potential_ingredients = {
@@ -93,23 +106,27 @@ def greedy_soup(args, base_model, weights_path, datasets_paths_map, val_ds_path,
         with torch.no_grad():
             recall, recall_str = test(args, val_ds, model, test_method=args.test_method)
             recall_to_compare = recall[0]
+            logging.info(f"Recall: {recall}")
             # free memory
             del model
-            del potential_ingredients
             del recall
             del recall_str
         
         # if the new ingredients improve the recall, add them to the soup
         if recall_to_compare > best_recall_so_far:
+            args.add_to_greedy_soup = True
             greedy_soup_ingredients.append(weights)
             best_recall_so_far = recall_to_compare
             greedy_soup_params = potential_ingredients
             logging.debug(f"New best recall: {best_recall_so_far}, adding to soup: {weights}")
+        else:
+            logging.debug(f"New ingredients don't improve the recall... don't add them to the soup: {greedy_soup_params}")
+        del potential_ingredients
     
     return greedy_soup_params, greedy_soup_ingredients
 
 
-def evaluate_greedy_soup(args, base_model, datasets, params):
+def evaluate_greedy_soup(args, datasets, params):
     results = {}
     
     model = GeoLocalizationNet(args.backbone, args.fc_output_dim, args.pretrain)

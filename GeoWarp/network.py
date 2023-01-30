@@ -17,8 +17,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 
-from commons_geowarp import get_output_dim
-
+import GeoWarp.commons_geowarp as commons_geowarp
 
 class GeM(nn.Module):
     def __init__(self, p=3, eps=1e-6):
@@ -72,7 +71,7 @@ class FeaturesExtractor(torch.nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((15, 15))
         self.l2norm = L2Norm()
         if pooling == "netvlad":
-            encoder_dim = get_output_dim(self.encoder)
+            encoder_dim = commons_geowarp.get_output_dim(self.encoder)
             self.pool = NetVLAD(dim=encoder_dim)
         elif pooling == "gem":
             self.pool = nn.Sequential(L2Norm(), GeM())

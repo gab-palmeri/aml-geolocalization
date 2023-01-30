@@ -5,7 +5,7 @@ import random
 from glob import glob
 from shapely.geometry import Polygon
 
-import datasets_util
+import GeoWarp.datasets_util as datasets_util
 
 
 def get_random_trapezoid(k=1):

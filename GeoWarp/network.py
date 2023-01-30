@@ -17,7 +17,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 
-from commons import get_output_dim
+from commons_geowarp import get_output_dim
 
 
 class GeM(nn.Module):

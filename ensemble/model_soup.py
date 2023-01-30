@@ -2,7 +2,7 @@ import torch
 import logging
 import numpy as np
 from os import listdir, path
-from ..datasets.test_dataset import SamTestDataset
+from ..datasets.test_dataset import DataAugTestDataset
 from ..test import test
 from ..model.network import GeoLocalizationNet
 
@@ -25,7 +25,7 @@ def evaluate_individual_models(args, weights_path, datasets):
             for dataset in datasets:
                 queries_folder = "queries_v1" if "small" in datasets[dataset] and "test" in datasets[dataset] else "queries"
                 logging.debug(f"Testing dataset {dataset}")
-                test_ds = SamTestDataset(datasets[dataset], queries_folder=queries_folder, positive_dist_threshold=args.positive_dist_threshold, test_method=args.test_method, resize = args.resize_as_db)
+                test_ds = DataAugTestDataset(datasets[dataset], queries_folder=queries_folder, positive_dist_threshold=args.positive_dist_threshold, test_method=args.test_method, resize = args.resize_as_db)
                 recall, recall_str = test(args, test_ds, model, test_method=args.test_method)
                 # free memory
                 del test_ds
@@ -84,7 +84,7 @@ def greedy_soup(args, weights_path, datasets_paths_map, results, sort_by="sf_r1"
         queries = "queries_v1"
     
     best_recall_so_far = sorted_models[0][1][key][0]
-    val_ds = SamTestDataset(datasets_paths_map[key], queries_folder=queries, positive_dist_threshold=args.positive_dist_threshold, test_method=args.test_method, resize = args.resize_as_db)
+    val_ds = DataAugTestDataset(datasets_paths_map[key], queries_folder=queries, positive_dist_threshold=args.positive_dist_threshold, test_method=args.test_method, resize = args.resize_as_db)
 
     for i, weights in enumerate([x[0] for x in sorted_models]):
         if i == 0: continue
@@ -138,7 +138,7 @@ def evaluate_greedy_soup(args, datasets, params):
             for k in datasets:
                 queries_folder = "queries_v1" if "small" in datasets[k] and "test" in datasets[k] else "queries"
 
-                test_ds = SamTestDataset(datasets[k], queries_folder=queries_folder, positive_dist_threshold=args.positive_dist_threshold, test_method=args.test_method, resize = args.resize_as_db)
+                test_ds = DataAugTestDataset(datasets[k], queries_folder=queries_folder, positive_dist_threshold=args.positive_dist_threshold, test_method=args.test_method, resize = args.resize_as_db)
                 recall, recall_str = test(args, test_ds, model, test_method=args.test_method)
                 # free memory
                 del test_ds

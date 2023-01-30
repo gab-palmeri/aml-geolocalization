@@ -135,7 +135,7 @@ class TestDataset(data.Dataset):
     def get_positives(self):
         return self.positives_per_query
 
-class SamTestDataset(data.Dataset):
+class DataAugTestDataset(data.Dataset):
     def __init__(self, dataset_folder, database_folder="database",
                  queries_folder="queries", positive_dist_threshold=25, test_method = None, resize = False):
         """Dataset with images from database and queries, used for validation and test.

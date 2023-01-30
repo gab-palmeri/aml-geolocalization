@@ -50,4 +50,7 @@ class GRL(nn.Module):
         self.alpha = alpha
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.alpha * x
+        if self.training:
+            return self.alpha * x
+        else:
+            return x

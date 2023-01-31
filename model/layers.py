@@ -44,13 +44,29 @@ class L2Norm(nn.Module):
     def forward(self, x):
         return F.normalize(x, p=2.0, dim=self.dim)
 
+# class GRL(nn.Module):
+#     def __init__(self, alpha: float = 0.5) -> None:
+#         super().__init__()
+#         self.alpha = alpha
+
+#     def forward(self, x: torch.Tensor) -> torch.Tensor:
+#         return x
+    
+#     def backward(self, grad_output: torch.Tensor) -> torch.Tensor:
+#         if self.training:
+#             return -self.alpha * grad_output
+#         else:
+#             return grad_output
+
 class GRL(nn.Module):
-    def __init__(self, alpha: float = 0.5) -> None:
+    def __init__(self, alpha: float = 0.5):
         super().__init__()
         self.alpha = alpha
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if self.training:
-            return self.alpha * x
-        else:
-            return x
+    def forward(self, x):
+        self.x = x
+        return x
+
+    def backward(self, grad_output):
+        grad_input = grad_output * -self.alpha
+        return grad_input

@@ -49,13 +49,13 @@ class GeoLocalizationNet(nn.Module):
         return x
 
 class GeoLocalizationNetV2(nn.Module):
-    def __init__(self, backbone, fc_output_dim, pretrain):
+    def __init__(self, backbone, fc_output_dim, pretrain, grl_param = 0.3):
         super().__init__()
         self.backbone, features_dim = get_backbone(backbone, pretrain)
         self.aggregation = nn.Sequential(
                 L2Norm(),
                 GeM(),
-                GRL(0.3),
+                GRL(grl_param),
                 Flatten(),
                 nn.Linear(features_dim, fc_output_dim),
                 L2Norm()

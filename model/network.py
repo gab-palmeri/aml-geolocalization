@@ -5,7 +5,6 @@ import torchvision
 from torch import nn
 
 from .layers import GRL, Flatten, L2Norm, GeM
-from .cct import cct_14_7x2_384
 
 # Pretrained models on Google Landmarks v2 and Places 365
 PRETRAINED_MODELS = {
@@ -27,7 +26,6 @@ CHANNELS_NUM_IN_LAST_CONV = {
         "mobilenet_v3_large": 960,
         "convnext_tiny": 768,
         "swin_tiny": 768,
-        "cct384": 384,
     }
 
 
@@ -54,7 +52,7 @@ class GeoLocalizationNetV2(nn.Module):
         self.backbone, features_dim = get_backbone(backbone, pretrain)
         self.aggregation = nn.Sequential(
                 L2Norm(),
-                GeM(),
+                GeM(cct = backbone.startswith("cct")),
                 GRL(0.3),
                 Flatten(),
                 nn.Linear(features_dim, fc_output_dim),
@@ -66,7 +64,7 @@ class GeoLocalizationNetV2(nn.Module):
         x = self.aggregation(x)
         return x
 
-def get_backbone(backbone_name, pretrain):
+def get_backbone(backbone_name, pretrain = "imagenet"):
     weights='IMAGENET1K_V1'
     if backbone_name.startswith("resnet"):
         if backbone_name == "resnet18":
@@ -148,6 +146,7 @@ def get_backbone(backbone_name, pretrain):
 
     elif backbone_name.startswith("cct"):
         raise ValueError("CCT is not supported yet")
+        # TODO: add support for CCT
         if backbone_name.startswith("cct384"):
             backbone = cct_14_7x2_384(pretrained=True, progress=True, aggregation="seqpool")
 

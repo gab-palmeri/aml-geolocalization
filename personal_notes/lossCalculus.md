@@ -121,6 +121,3 @@ criterion = torch.nn.CrossEntropyLoss()
 ```
 
 Considering that there are not critical differences, because we can easily change from one implementation to the other just considering a different point of loss function calculation.
-
-# Next Steps
-We have to decide which strategy to adopt in order to use always the same loss function calculation strategy.

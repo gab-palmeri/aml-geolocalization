@@ -2,7 +2,7 @@ import torch
 import logging
 import numpy as np
 from os import listdir, path
-from ..datasets.test_dataset import DataAugTestDataset
+from ..datasets.aug_test_dataset import DataAugTestDataset
 from ..test import test
 from ..model.network import GeoLocalizationNet
 
